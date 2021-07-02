@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Gamedev Canvas Workshop</title>
+    <style>
+        * {
+            padding: 0;
+            margin: 0;
+        }
+        canvas {
+            background: rgb(228, 228, 228);
+            display: block;
+            margin: 0 auto;
+        }
+    </style>
+    <link rel="stylesheet" type="text/css" media="screen" href="https://cdn.rawgit.com/resir014/Clear-Sans-Webfont/v1.1.0/css/clear-sans.css">
+</head>
+<body>
+
+<canvas id="myCanvas" width="500" height="581"></canvas>
+
+<script>
+    var canvas = document.getElementById("myCanvas");
+    var ctx = canvas.getContext("2d");
+
+    // ctx.beginPath();
+    // ctx.rect(20, 40, 50, 50);
+    // ctx.fillStyle = "#FF0000";
+    // ctx.fill();
+    // ctx.closePath();
+
+    // ctx.beginPath();
+    // ctx.arc(240, 160, 20, 0, Math.PI*2, false);
+    // ctx.fillStyle = "green";
+    // ctx.fill();
+    // ctx.closePath();
+
+    // ctx.beginPath();
+    // ctx.rect(160, 10, 100, 40);
+    // ctx.strokeStyle = "rgba(0, 0, 255, 0.5)";
+    // ctx.stroke();
+    // ctx.closePath();
+
+    //Text
+    var textSize = 20
+    var textWidth = 12
+    var textHeight = 16
+
+    //Canvas
+    var x = canvas.width/2;
+    var y = canvas.height-30;
+
+    //Board
+    var boardRowCount = 4;
+    var boardColumnCount = 4;
+
+    var blockPadding = 5;
+    var boardWidth = 320;
+    var boardHeight = 320;
+    var boardOffsetTop = 30;
+    var boardOffsetLeft = 30;
+
+    var board = [];
+    for(var c=0; c<boardColumnCount; c++) {
+        board[c] = [];
+        for(var r=0; r<boardRowCount; r++) {
+            board[c][r] = {value: 0, color: "#ffffff"}
+        }
+    }
+
+    // board[2][3] = {value: 1, color: ("#ffffff")}
+    // board[2][0] = {value: 1, color: ("#ffffff")}
+    // board[2][2] = {value: 1, color: ("#ffffff")}
+
+    var pineapple = null
+
+    //Other
+    var score = 0;
+    var rightPressed = false;
+    var leftPressed = false;
+    var upPressed = false;
+    var downPressed = false;
+
+    document.addEventListener("keydown", keyDownHandler, false);
+    document.addEventListener("keyup", keyUpHandler, false);
+    // document.addEventListener("mousemove", mouseMoveHandler, false);
+
+    function mouseMoveHandler(e) {
+        var relativeX = e.clientX - canvas.offsetLeft;
+        if(relativeX > 0 && relativeX < canvas.width) {
+            paddleX = relativeX - paddleWidth/2;
+        }
+    }
+
+    function keyDownHandler(e) {
+        if(e.key == "Right" || e.key == "ArrowRight") {
+            rightPressed = true;
+        }
+        else if(e.key == "Left" || e.key == "ArrowLeft") {
+            leftPressed = true;
+        }
+        else if(e.key == "Down" || e.key == "ArrowDown") {
+            downPressed = true;
+        }
+        else if(e.key == "Up" || e.key == "ArrowUp") {
+            upPressed = true;
+        }
+    }
+
+    function keyUpHandler(e) {
+        if(e.key == "Right" || e.key == "ArrowRight") {
+            rightPressed = false;
+        }
+        else if(e.key == "Left" || e.key == "ArrowLeft") {
+            leftPressed = false;
+        }
+        else if(e.key == "Down" || e.key == "ArrowDown") {
+            downPressed = false;
+        }
+        else if(e.key == "Up" || e.key == "ArrowUp") {
+            upPressed = false;
+        }
+    }
+
+    function drawScore() {
+    ctx.font = "16px Arial";
+    ctx.fillStyle = "#0095DD";
+    ctx.fillText("Score: "+score, 8, 20);
+}
+
+    function drawPaddle() {
+        ctx.beginPath();
+        ctx.rect(paddleX, canvas.height-paddleHeight, paddleWidth, paddleHeight);
+        ctx.fillStyle = "#0095DD";
+        ctx.fill();
+        ctx.closePath();
+    }
+
+    function drawBoard() {
+        ctx.beginPath();
+        ctx.rect((canvas.width/2)-(boardWidth/2), (canvas.height/2)-(boardHeight/2), boardWidth, boardHeight);
+        ctx.fillStyle = "#b5b5b5";
+        ctx.fill();
+        ctx.closePath();
+
+        for(var c=0; c<boardColumnCount; c++) {
+            for(var r=0; r<boardRowCount; r++) {
+                boxXSize=boardWidth/boardColumnCount
+                boxYSize=boardHeight/boardRowCount
+
+                boxMinSize = Math.min(boxXSize, boxYSize)
+
+                startingX=(canvas.width/2)-(boardWidth/2)+((boxXSize-boxMinSize)/2)
+                startingY=(canvas.height/2)-(boardHeight/2)+((boxYSize-boxMinSize)/2)
+
+                if(board[c][r].value != 0) {
+                    ctx.beginPath();
+                    ctx.rect(startingX+boxXSize*c+blockPadding, startingY+boxYSize*r+blockPadding, boxMinSize-(2*blockPadding), boxMinSize-(2*blockPadding));
+                    ctx.fillStyle = board[c][r].color
+                    ctx.fill();
+                    ctx.font = "20px Clear Sans";
+                    ctx.fillStyle = "#000000";
+                    value = 2 ** board[c][r].value;
+                    valueLength = value.toString().length
+                    ctx.fillText(value , startingX+boxXSize*c+(boxMinSize/2)-((textWidth*valueLength)/2), startingY+boxYSize*r+(boxMinSize/2)+(textHeight/2));
+                    ctx.closePath();
+                }
+            }
+        }
+    }
+
+    function drawBall() {
+        ctx.beginPath();
+        ctx.arc(x, y, ballRadius, 0, Math.PI*2);
+        ctx.fillStyle = "#0095DD";
+        ctx.fill();
+        ctx.closePath();
+    }
+
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        // drawBoard() 
+        // drawBall() 
+        // drawPaddle()
+        // drawBricks()
+        // drawScore()
+        
+        drawBoard()
+        
+        board[1][1].value = 2
+
+        if(rightPressed) {
+            for (var i = 0; i < boardRowCount; i++) {
+                for (var j = 0; j < boardColumnCount; j++) {
+                    if (board[i+1][j].value == 0) {
+                        board[i+1][j].value = board[i][j].value
+                        board[i][j].value = 0
+                    }
+                    else if (board[i+1][j].value == board[i][j].value) {
+                        board[i+1][j].value = board[i+1][j].value + 1
+                        board[i][j].value = 0
+                    }
+                }
+            }
+            board[1][1].value = 2
+            console.log('right')
+        }
+        else if(leftPressed) {
+            for (var i = boardRowCount-1; i >= 0; i--) {
+                for (var j = boardColumnCount-1; j >= 0; j--) {
+                    if (board[i-1][j].value == 0) {
+                        board[i-1][j].value = board[i][j].value
+                        board[i][j].value = 0
+                    }
+                    else if (board[i-1][j].value == board[i][j].value) {
+                        board[i-1][j].value = board[i-1][j].value + 1
+                        board[i][j].value = 0
+                    }
+                }
+            }
+            console.log('left')
+        }
+        else if(upPressed) {
+            for (var j = boardRowCount-1; j >= 0; j--) {
+                for (var i = boardColumnCount-1; i >= 0; i--) {
+                    if (board[i][j-1].value == 0) {
+                        board[i][j-1].value = board[i][j].value
+                        board[i][j].value = 0
+                    } else if (board[i][j-1].value == board[i][j].value) {
+                        board[i][j-1].value = board[i][j-1].value + 1
+                        board[i][j].value = 0
+                    }
+                }
+            }
+            console.log('up')
+        }
+        else if(downPressed) {
+            for (var j = 0; j < boardRowCount; j++) {
+                for (var i = 0; i < boardColumnCount; i++) {
+                    if (board[i][j+1].value == 0) {
+                        board[i][j+1].value = board[i][j].value
+                        board[i][j].value = 0
+                    } else if (board[i][j+1].value == board[i][j].value) {
+                        board[i][j+1].value = board[i][j+1].value + 1
+                        board[i][j].value = 0
+                    }
+                }
+            }
+            console.log('down')
+        }
+    }
+    var interval = setInterval(draw, 10);
+</script>
+
+</body>
+</html>
